@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Накладна</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background-color: #f4f4f4;
+    }
+    .total {
+      font-weight: bold;
+      font-size: 1.2em;
+    }
+    button {
+      padding: 10px 15px;
+      cursor: pointer;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      margin-right: 10px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    #clearAll {
+      background-color: #f44336;
+    }
+    #clearAll:hover {
+      background-color: #e53935;
+    }
+
+    .invoice {
+      margin-top: 30px;
+      border: 1px solid #ddd;
+      padding: 20px;
+      display: none;
+    }
+    .invoice h2 {
+      text-align: center;
+    }
+    .invoice-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    .invoice-table th, .invoice-table td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    .signature {
+      margin-top: 20px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .signature div {
+      width: 48%;
+      text-align: center;
+      padding-top: 10px;
+      border-top: 1px solid black;
+    }
+
+    /* Стилі для друку */
+    @media print {
+      body * {
+        visibility: hidden; /* Приховуємо все інше */
+      }
+      .invoice, .invoice * {
+        visibility: visible; /* Залишаємо видимою лише накладну */
+      }
+      .invoice {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Накладна</h1>
+  <table id="invoiceTable">
+    <thead>
+      <tr>
+        <th>Назва товару</th>
+        <th>Ціна за одиницю (грн)</th>
+        <th>Кількість</th>
+        <th>Сума (грн)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><input type="text" placeholder="Назва товару"></td>
+        <td><input type="number" class="price" value="0"></td>
+        <td><input type="number" class="quantity" value="0"></td>
+        <td class="sum">0</td>
+      </tr>
+    </tbody>
+  </table>
+  <button id="addRow">Додати рядок</button>
+  <button id="clearAll">Очистити все</button>
+  <button id="generateInvoice">Згенерувати накладну</button>
+  <p class="total">Загальна сума: <span id="totalSum">0</span> грн</p>
+
+  <div id="invoiceSection" class="invoice">
+    <h2>Накладна квитанція</h2>
+    <table class="invoice-table">
+      <thead>
+        <tr>
+          <th>Назва товару</th>
+          <th>Ціна за одиницю (грн)</th>
+          <th>Кількість</th>
+          <th>Сума (грн)</th>
+        </tr>
+      </thead>
+      <tbody id="invoiceTableBody"></tbody>
+    </table>
+    <p><strong>Ітогова сума:</strong> <span id="finalTotalSum">0</span> грн</p>
+    <div class="signature">
+      <div>ФОП Лозовий Богдан Вадимович</div>
+      <div>Отримав</div>
+    </div>
+    <button id="printInvoice">Роздрукувати</button>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const invoiceTable = document.getElementById('invoiceTable');
+      const addRowButton = document.getElementById('addRow');
+      const clearAllButton = document.getElementById('clearAll');
+      const generateInvoiceButton = document.getElementById('generateInvoice');
+      const totalSumElement = document.getElementById('totalSum');
+      const invoiceSection = document.getElementById('invoiceSection');
+      const invoiceTableBody = document.getElementById('invoiceTableBody');
+      const finalTotalSumElement = document.getElementById('finalTotalSum');
+      const printButton = document.getElementById('printInvoice');
+
+      function updateSum() {
+        let totalSum = 0;
+        invoiceTable.querySelectorAll('tbody tr').forEach(row => {
+          const price = parseFloat(row.querySelector('.price').value) || 0;
+          const quantity = parseFloat(row.querySelector('.quantity').value) || 0;
+          const sum = price * quantity;
+          row.querySelector('.sum').textContent = sum.toFixed(2);
+          totalSum += sum;
+        });
+        totalSumElement.textContent = totalSum.toFixed(2);
+      }
+
+      function generateInvoice() {
+        invoiceTableBody.innerHTML = ''; // Очистка таблиці накладної
+        let totalSum = 0;
+
+        invoiceTable.querySelectorAll('tbody tr').forEach(row => {
+          const product = row.querySelector('input[type="text"]').value.trim();
+          const price = parseFloat(row.querySelector('.price').value) || 0;
+          const quantity = parseFloat(row.querySelector('.quantity').value) || 0;
+          const sum = price * quantity;
+
+          if (product && quantity > 0) {
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+              <td>${product}</td>
+              <td>${price.toFixed(2)}</td>
+              <td>${quantity}</td>
+              <td>${sum.toFixed(2)}</td>
+            `;
+            invoiceTableBody.appendChild(newRow);
+            totalSum += sum;
+          }
+        });
+
+        finalTotalSumElement.textContent = totalSum.toFixed(2);
+        invoiceSection.style.display = 'block'; // Показуємо накладну
+      }
+
+      addRowButton.addEventListener('click', () => {
+        const newRow = document.createElement('tr');
+        newRow.innerHTML = `
+          <td><input type="text" placeholder="Назва товару"></td>
+          <td><input type="number" class="price" value="0"></td>
+          <td><input type="number" class="quantity" value="0"></td>
+          <td class="sum">0</td>
+        `;
+        invoiceTable.querySelector('tbody').appendChild(newRow);
+        newRow.querySelectorAll('input').forEach(input => {
+          input.addEventListener('input', updateSum);
+        });
+      });
+
+      clearAllButton.addEventListener('click', () => {
+        invoiceTable.querySelector('tbody').innerHTML = `
+          <tr>
+            <td><input type="text" placeholder="Назва товару"></td>
+            <td><input type="number" class="price" value="0"></td>
+            <td><input type="number" class="quantity" value="0"></td>
+            <td class="sum">0</td>
+          </tr>
+        `;
+        totalSumElement.textContent = '0';
+        invoiceSection.style.display = 'none';
+      });
+
+      generateInvoiceButton.addEventListener('click', generateInvoice);
+
+      printButton.addEventListener('click', () => {
+        window.print();
+      });
+
+      invoiceTable.querySelectorAll('input').forEach(input => {
+        input.addEventListener('input', updateSum);
+      });
+
+      updateSum();
+    });
+  </script>
+</body>
+</html>
