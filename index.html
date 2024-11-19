@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uk">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +8,8 @@
     body {
       font-family: Arial, sans-serif;
       margin: 20px;
+      background-color: #1e1e1e; /* Темний фон */
+      color: #f0f0f0; /* Світлий текст */
     }
     table {
       width: 100%;
@@ -15,16 +17,31 @@
       margin-bottom: 20px;
     }
     th, td {
-      border: 1px solid #ddd;
+      border: 1px solid #555; /* Темні рамки */
       padding: 8px;
       text-align: center;
     }
     th {
-      background-color: #f4f4f4;
+      background-color: #333; /* Темний фон для заголовків */
+      color: #fff; /* Білий текст */
+      font-weight: bold; /* Жирний шрифт */
+    }
+    td {
+      background-color: #2a2a2a; /* Темний фон для комірок */
+    }
+    input[type="text"], input[type="number"] {
+      background-color: #444; /* Темний фон для полів вводу */
+      color: #f0f0f0; /* Світлий текст */
+      border: 1px solid #666; /* Темний бордер */
+      padding: 5px;
+    }
+    input[type="text"]::placeholder, input[type="number"]::placeholder {
+      color: #aaa; /* Світлий плейсхолдер */
     }
     .total {
       font-weight: bold;
       font-size: 1.2em;
+      color: #f0f0f0;
     }
     button {
       padding: 10px 15px;
@@ -34,6 +51,7 @@
       border: none;
       border-radius: 5px;
       margin-right: 10px;
+      font-weight: bold;
     }
     button:hover {
       background-color: #45a049;
@@ -47,12 +65,20 @@
 
     .invoice {
       margin-top: 30px;
-      border: 1px solid #ddd;
+      border: 1px solid #555;
       padding: 20px;
       display: none;
+      background-color: #1e1e1e; /* Темний фон для накладної */
+      color: #f0f0f0; /* Світлий текст */
     }
     .invoice h2 {
       text-align: center;
+      font-weight: bold;
+      color: #fff;
+    }
+    .invoice p {
+      font-size: 1em;
+      font-weight: bold;
     }
     .invoice-table {
       width: 100%;
@@ -60,9 +86,11 @@
       margin-bottom: 20px;
     }
     .invoice-table th, .invoice-table td {
-      border: 1px solid #ddd;
+      border: 1px solid #555;
       padding: 8px;
       text-align: left;
+      background-color: #2a2a2a;
+      color: #f0f0f0;
     }
     .signature {
       margin-top: 20px;
@@ -73,7 +101,7 @@
       width: 48%;
       text-align: center;
       padding-top: 10px;
-      border-top: 1px solid black;
+      border-top: 1px solid #fff;
     }
 
     /* Стилі для друку */
@@ -81,14 +109,17 @@
       body * {
         visibility: hidden; /* Приховуємо все інше */
       }
-      .invoice, .invoice * {
-        visibility: visible; /* Залишаємо видимою лише накладну */
-      }
-      .invoice {
+      .print-section {
+        visibility: visible; /* Залишаємо видимою лише секцію для друку */
         position: absolute;
         top: 0;
         left: 0;
         width: 100%;
+      }
+      .duplicate {
+        margin-top: 50px;
+        border-top: 2px dashed #fff;
+        padding-top: 20px;
       }
     }
   </style>
@@ -116,27 +147,50 @@
   <button id="addRow">Додати рядок</button>
   <button id="clearAll">Очистити все</button>
   <button id="generateInvoice">Згенерувати накладну</button>
+  <button id="printInvoice">Друк</button>
   <p class="total">Загальна сума: <span id="totalSum">0</span> грн</p>
 
-  <div id="invoiceSection" class="invoice">
-    <h2>Накладна квитанція</h2>
-    <table class="invoice-table">
-      <thead>
-        <tr>
-          <th>Назва товару</th>
-          <th>Ціна за одиницю (грн)</th>
-          <th>Кількість</th>
-          <th>Сума (грн)</th>
-        </tr>
-      </thead>
-      <tbody id="invoiceTableBody"></tbody>
-    </table>
-    <p><strong>Ітогова сума:</strong> <span id="finalTotalSum">0</span> грн</p>
-    <div class="signature">
-      <div>ФОП Лозовий Богдан Вадимович</div>
-      <div>Отримав</div>
+  <div id="printSection" class="print-section">
+    <div id="invoiceSection" class="invoice">
+      <h2>Накладна квитанція</h2>
+      <p>Дата: <span id="currentDate"></span></p>
+      <table class="invoice-table">
+        <thead>
+          <tr>
+            <th>Назва товару</th>
+            <th>Ціна за одиницю (грн)</th>
+            <th>Кількість</th>
+            <th>Сума (грн)</th>
+          </tr>
+        </thead>
+        <tbody id="invoiceTableBody"></tbody>
+      </table>
+      <p><strong>Загальна сума:</strong> <span id="finalTotalSum">0</span> грн</p>
+      <div class="signature">
+        <div>ФОП Лозовий Богдан Вадимович</div>
+        <div>Отримав</div>
+      </div>
     </div>
-    <button id="printInvoice">Роздрукувати</button>
+    <div class="invoice duplicate">
+      <h2>Дублікат накладної</h2>
+      <p>Дата: <span id="currentDateDuplicate"></span></p>
+      <table class="invoice-table">
+        <thead>
+          <tr>
+            <th>Назва товару</th>
+            <th>Ціна за одиницю (грн)</th>
+            <th>Кількість</th>
+            <th>Сума (грн)</th>
+          </tr>
+        </thead>
+        <tbody id="invoiceTableBodyDuplicate"></tbody>
+      </table>
+      <p><strong>Загальна сума:</strong> <span id="finalTotalSumDuplicate">0</span> грн</p>
+      <div class="signature">
+        <div>ФОП Лозовий Богдан Вадимович</div>
+        <div>Отримав</div>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -145,11 +199,19 @@
       const addRowButton = document.getElementById('addRow');
       const clearAllButton = document.getElementById('clearAll');
       const generateInvoiceButton = document.getElementById('generateInvoice');
+      const printButton = document.getElementById('printInvoice');
       const totalSumElement = document.getElementById('totalSum');
       const invoiceSection = document.getElementById('invoiceSection');
       const invoiceTableBody = document.getElementById('invoiceTableBody');
       const finalTotalSumElement = document.getElementById('finalTotalSum');
-      const printButton = document.getElementById('printInvoice');
+      const duplicateTableBody = document.getElementById('invoiceTableBodyDuplicate');
+      const finalDuplicateSumElement = document.getElementById('finalTotalSumDuplicate');
+      const currentDateElement = document.getElementById('currentDate');
+      const currentDateDuplicateElement = document.getElementById('currentDateDuplicate');
+
+      const currentDate = new Date().toLocaleDateString();
+      currentDateElement.textContent = currentDate;
+      currentDateDuplicateElement.textContent = currentDate;
 
       function updateSum() {
         let totalSum = 0;
@@ -164,7 +226,8 @@
       }
 
       function generateInvoice() {
-        invoiceTableBody.innerHTML = ''; // Очистка таблиці накладної
+        invoiceTableBody.innerHTML = '';
+        duplicateTableBody.innerHTML = '';
         let totalSum = 0;
 
         invoiceTable.querySelectorAll('tbody tr').forEach(row => {
@@ -175,19 +238,23 @@
 
           if (product && quantity > 0) {
             const newRow = document.createElement('tr');
+            const duplicateRow = document.createElement('tr');
             newRow.innerHTML = `
               <td>${product}</td>
               <td>${price.toFixed(2)}</td>
               <td>${quantity}</td>
               <td>${sum.toFixed(2)}</td>
             `;
+            duplicateRow.innerHTML = newRow.innerHTML;
             invoiceTableBody.appendChild(newRow);
+            duplicateTableBody.appendChild(duplicateRow);
             totalSum += sum;
           }
         });
 
         finalTotalSumElement.textContent = totalSum.toFixed(2);
-        invoiceSection.style.display = 'block'; // Показуємо накладну
+        finalDuplicateSumElement.textContent = totalSum.toFixed(2);
+        invoiceSection.style.display = 'block';
       }
 
       addRowButton.addEventListener('click', () => {
