@@ -63,13 +63,16 @@
       background-color: #e53935;
     }
 
+    .invoice-section {
+      display: none;
+    }
+
     .invoice {
       margin-top: 30px;
       border: 1px solid #555;
       padding: 20px;
-      display: none;
-      background-color: #1e1e1e; /* Темний фон для накладної */
-      color: #f0f0f0; /* Світлий текст */
+      background-color: #1e1e1e;
+      color: #f0f0f0;
     }
     .invoice h2 {
       text-align: center;
@@ -109,14 +112,15 @@
       body * {
         visibility: hidden; /* Приховуємо все інше */
       }
-      .print-section {
-        visibility: visible; /* Залишаємо видимою лише секцію для друку */
+      .invoice-section {
+        display: block;
+        visibility: visible;
         position: absolute;
         top: 0;
         left: 0;
         width: 100%;
       }
-      .duplicate {
+      .invoice-duplicate {
         margin-top: 50px;
         border-top: 2px dashed #fff;
         padding-top: 20px;
@@ -150,8 +154,8 @@
   <button id="printInvoice">Друк</button>
   <p class="total">Загальна сума: <span id="totalSum">0</span> грн</p>
 
-  <div id="printSection" class="print-section">
-    <div id="invoiceSection" class="invoice">
+  <div id="invoiceSection" class="invoice-section">
+    <div class="invoice">
       <h2>Накладна квитанція</h2>
       <p>Дата: <span id="currentDate"></span></p>
       <table class="invoice-table">
@@ -171,7 +175,7 @@
         <div>Отримав</div>
       </div>
     </div>
-    <div class="invoice duplicate">
+    <div class="invoice invoice-duplicate">
       <h2>Дублікат накладної</h2>
       <p>Дата: <span id="currentDateDuplicate"></span></p>
       <table class="invoice-table">
@@ -287,6 +291,7 @@
       generateInvoiceButton.addEventListener('click', generateInvoice);
 
       printButton.addEventListener('click', () => {
+        generateInvoice();
         window.print();
       });
 
